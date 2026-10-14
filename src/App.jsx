@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ModelPrediction from "./pages/ModelPrediction";
 import Home from "./pages/Home";
 import Assessment from "./pages/Assessment";
 import Results from "./pages/Results";
@@ -12,6 +13,10 @@ function App() {
        <Route path="/assessment" element={<Assessment />} />
        <Route path="/results" element={<Results />} />
        <Route path="/recommendations" element={<Recommendations />} />
+      <Route
+  path="/model-demo"
+  element={<ModelPrediction />}
+/>
      </Routes>
   );
 }
