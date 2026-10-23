@@ -270,7 +270,7 @@ function Home() {
             <div className="grid md:grid-cols-4 gap-8 mt-14">
 
               {[
-                "Answer 25 Questions",
+                "Answer Questions",
                 "System Calculates Readiness",
                 "Identify Weak Areas",
                 "Receive Recommendations",

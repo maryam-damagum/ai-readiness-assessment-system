@@ -32,3 +32,27 @@ env/
 .env
 .env.*
 !.env.example
+
+
+
+# Python environments
+.venv/
+.venv312/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local databases and data
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Build dependencies
+node_modules/
+dist/

@@ -1,17 +1,25 @@
-import { createContext, useContext, useMemo, useState } from "react";
 
-import { questions } from "../data/questions";
+import { createContext, useContext, useMemo, useState } from "react";
+import { questionnaireSections } from "../data/questionnaire";
 import { calculateScore } from "../utils/calculateScore";
 import { recommendationEngine } from "../utils/recommendationEngine";
 
 const AssessmentContext = createContext();
 
+const questions = questionnaireSections.flatMap((section) =>
+  section.questions.map((question) => ({
+    ...question,
+    section: section.id,
+    sectionTitle: section.title,
+  }))
+);
+
 export function AssessmentProvider({ children }) {
   const [answers, setAnswers] = useState({});
 
   const saveAnswer = (questionId, answer) => {
-    setAnswers((prev) => ({
-      ...prev,
+    setAnswers((previous) => ({
+      ...previous,
       [questionId]: answer,
     }));
   };
@@ -20,12 +28,13 @@ export function AssessmentProvider({ children }) {
     setAnswers({});
   };
 
-  const results = useMemo(() => {
-    return calculateScore(answers, questions);
-  }, [answers]);
+  const results = useMemo(
+    () => calculateScore(answers, questions),
+    [answers]
+  );
 
   const recommendations = useMemo(() => {
-    if (!results) return [];
+    if (!results?.complete) return [];
 
     return recommendationEngine(
       results.readinessLevel,
