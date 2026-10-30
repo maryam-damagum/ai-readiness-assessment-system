@@ -242,7 +242,7 @@ def submit_response(payload: SubmissionInput):
                     calculated["overall_score"],
                 ),
                 )
-            except Exception as exc:
+    except Exception as exc:
         print("DATABASE SAVE ERROR:", repr(exc))
 
         raise HTTPException(
