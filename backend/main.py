@@ -215,24 +215,26 @@ def submit_response(payload: SubmissionInput):
 
     try:
         with get_connection() as connection:
-           placeholders = (
-    "%s, %s, %s, %s, %s, %s"
-    if os.getenv("DATABASE_URL")
-    else "?, ?, ?, ?, ?, ?"
-)
+    placeholders = (
+        "%s, %s, %s, %s, %s, %s"
+        if os.getenv("DATABASE_URL")
+        else "?, ?, ?, ?, ?, ?"
+    )
 
-        connection.execute(
-            f"""
-            INSERT INTO responses (
-                submission_id,
-                submitted_at,
-                questionnaire_version,
-                responses_json,
-                dimension_scores_json,
-                overall_score
-            )
-            VALUES ({placeholders})
-            """,
+    try:
+        with get_connection() as connection:
+            connection.execute(
+                f"""
+                INSERT INTO responses (
+                    submission_id,
+                    submitted_at,
+                    questionnaire_version,
+                    responses_json,
+                    dimension_scores_json,
+                    overall_score
+                )
+                VALUES ({placeholders})
+                """,
                 (
                     submission_id,
                     submitted_at,
@@ -241,10 +243,10 @@ def submit_response(payload: SubmissionInput):
                     json.dumps(calculated["dimension_scores"]),
                     calculated["overall_score"],
                 ),
-                )
+            )
+
     except Exception as exc:
         print("DATABASE SAVE ERROR:", repr(exc))
-
         raise HTTPException(
             status_code=500,
             detail="Could not save the submission."
