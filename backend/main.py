@@ -115,6 +115,80 @@ def health():
     }
 
 
+@app.post("/predict", response_model=PredictionOutput)
+def predict(payload: PredictionInput):
+    try:
+        payload.validate_scores()
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc)
+        ) from exc
+
+    try:
+        bundle = load_bundle()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not load prediction model: {exc}"
+        ) from exc
+
+    if bundle is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Model artifact is missing from the backend folder."
+        )
+
+    expected = bundle.get("feature_names", FEATURE_NAMES)
+
+    if list(expected) != FEATURE_NAMES:
+        raise HTTPException(
+            status_code=500,
+            detail="Model feature names do not match the API."
+        )
+
+    row = pd.DataFrame(
+        [[payload.scores[name] for name in FEATURE_NAMES]],
+        columns=FEATURE_NAMES
+    )
+
+    model = bundle["pipeline"]
+
+    try:
+        predicted = int(model.predict(row)[0])
+        probabilities = model.predict_proba(row)[0]
+
+        class_to_probability = {
+            int(class_value): float(probability)
+            for class_value, probability in zip(
+                model.classes_, probabilities
+            )
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {exc}"
+        ) from exc
+
+    p_yes = class_to_probability.get(1, 0.0)
+    p_no = class_to_probability.get(0, 0.0)
+
+    return PredictionOutput(
+        predicted_class=str(predicted),
+        predicted_label="Yes" if predicted == 1 else "No/Other",
+        probability_yes=round(p_yes, 4),
+        probability_no_other=round(p_no, 4),
+        target="C5: reported AI monitoring/evaluation mechanisms",
+        warning=(
+            "Exploratory proof of concept only. The model was fitted on "
+            "13 respondent records without verified university identifiers; "
+            "its 53.8% LOOCV accuracy was below the 69.2% majority-class "
+            "baseline. Do not use for real institutional decisions."
+        )
+    )
+
+
 
 @app.post("/submit")
 def submit_response(payload: SubmissionInput):
