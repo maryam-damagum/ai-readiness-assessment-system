@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Dict
 from backend.scoring import validate_and_score
@@ -32,6 +33,7 @@ app.add_middleware(
     "http://127.0.0.1:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5174",
+    "https://ai-readiness-assessment-system.vercel.app",
 ],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
@@ -213,18 +215,24 @@ def submit_response(payload: SubmissionInput):
 
     try:
         with get_connection() as connection:
-            connection.execute(
-                """
-                INSERT INTO responses (
-                    submission_id,
-                    submitted_at,
-                    questionnaire_version,
-                    responses_json,
-                    dimension_scores_json,
-                    overall_score
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
+           placeholders = (
+    "%s, %s, %s, %s, %s, %s"
+    if os.getenv("DATABASE_URL")
+    else "?, ?, ?, ?, ?, ?"
+)
+
+        connection.execute(
+            f"""
+            INSERT INTO responses (
+                submission_id,
+                submitted_at,
+                questionnaire_version,
+                responses_json,
+                dimension_scores_json,
+                overall_score
+            )
+            VALUES ({placeholders})
+            """,
                 (
                     submission_id,
                     submitted_at,
