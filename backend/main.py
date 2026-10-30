@@ -241,8 +241,10 @@ def submit_response(payload: SubmissionInput):
                     json.dumps(calculated["dimension_scores"]),
                     calculated["overall_score"],
                 ),
-            )
-    except Exception as exc:
+                )
+        except Exception as exc:
+        print("DATABASE SAVE ERROR:", type(exc).__name__, str(exc))
+
         raise HTTPException(
             status_code=500,
             detail="Could not save the submission."
